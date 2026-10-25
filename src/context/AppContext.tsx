@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { FoodItem, CartItem, CartCustomization, Order, UserProfile, Coupon, UserAddress } from '../types';
 import { FOOD_ITEMS, DEMO_USER, COUPONS } from '../data/mockData';
 import { authService } from '../services/authService';
+import { supabaseService } from '../services/supabaseService';
+import { isSupabaseConfigured, testSupabaseConnection } from '../lib/supabase';
 
 interface Toast {
   id: string;
@@ -93,11 +95,15 @@ interface AppContextType {
   selectedFoodForModal: FoodItem | null;
   setSelectedFoodForModal: (item: FoodItem | null) => void;
 
-  // Menu items list (can be edited by admin)
+  // Menu items list (synced with Supabase)
   dishes: FoodItem[];
   toggleDishAvailability: (dishId: string) => void;
   updateDishPrice: (dishId: string, newPrice: number) => void;
   addNewDish: (dish: FoodItem) => void;
+
+  // Database Connection Diagnostic
+  isSupabaseLive: boolean;
+  checkSupabaseConnection: () => Promise<{ configured: boolean; connected: boolean; message: string }>;
 
   // Toasts
   toasts: Toast[];
@@ -111,6 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Load initial authenticated user from persistent auth session
   const [user, setUser] = useState<UserProfile | null>(() => authService.getCurrentUser());
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | 'forgot'>('signin');
+  const [isSupabaseLive, setIsSupabaseLive] = useState<boolean>(isSupabaseConfigured());
 
   // Verify auth initialization on mount
   useEffect(() => {
@@ -175,7 +182,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Real Auth Service Integrations
+  // 1. Initial Dishes Load from Supabase + Realtime Subscription
+  useEffect(() => {
+    let isMounted = true;
+
+    supabaseService.getFoodItems().then((res) => {
+      if (isMounted) {
+        if (res.data && res.data.length > 0) {
+          setDishes(res.data);
+        }
+        setIsSupabaseLive(res.isLiveDb);
+      }
+    });
+
+    // Supabase Realtime Channel for food items
+    const foodSub = supabaseService.subscribeToFoodItems((payload) => {
+      if (!isMounted) return;
+      if (payload.eventType === 'UPDATE' && payload.new) {
+        setDishes((prev) =>
+          prev.map((d) =>
+            d.id === payload.new.id
+              ? {
+                  ...d,
+                  price: Number(payload.new.price),
+                  isAvailable: payload.new.is_available !== false,
+                  name: payload.new.name || d.name,
+                  image: payload.new.image || d.image
+                }
+              : d
+          )
+        );
+      } else if (payload.eventType === 'INSERT' && payload.new) {
+        setDishes((prev) => {
+          if (prev.some((d) => d.id === payload.new.id)) return prev;
+          const newDish: FoodItem = {
+            id: payload.new.id,
+            name: payload.new.name,
+            slug: payload.new.slug || payload.new.id,
+            category: payload.new.category_id || 'indian',
+            cuisine: payload.new.cuisine || '',
+            price: Number(payload.new.price),
+            rating: Number(payload.new.rating || 4.8),
+            reviewsCount: Number(payload.new.reviews_count || 0),
+            description: payload.new.description || '',
+            image: payload.new.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80',
+            badge: payload.new.badge,
+            isVeg: Boolean(payload.new.is_veg),
+            isSpicy: Boolean(payload.new.is_spicy),
+            prepTimeMinutes: Number(payload.new.prep_time_minutes || 20),
+            isAvailable: payload.new.is_available !== false
+          };
+          return [newDish, ...prev];
+        });
+      } else if (payload.eventType === 'DELETE' && payload.old) {
+        setDishes((prev) => prev.filter((d) => d.id !== payload.old.id));
+      }
+    });
+
+    // Supabase Realtime Channel for Orders
+    const orderSub = supabaseService.subscribeToOrders((payload) => {
+      if (!isMounted) return;
+      if (payload.eventType === 'UPDATE' && payload.new) {
+        setOrders((prev) =>
+          prev.map((ord) =>
+            ord.id === payload.new.id
+              ? { ...ord, status: payload.new.status, paymentStatus: payload.new.payment_status || ord.paymentStatus }
+              : ord
+          )
+        );
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      foodSub.unsubscribe();
+      orderSub.unsubscribe();
+    };
+  }, []);
+
+  const checkSupabaseConnection = async () => {
+    const res = await testSupabaseConnection();
+    setIsSupabaseLive(res.connected);
+    return res;
+  };
+
+  // Auth Operations
   const loginUser = async (email: string, password: string) => {
     const res = await authService.login(email, password);
     if (res.success && res.user) {
@@ -197,9 +288,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     role?: 'customer' | 'admin';
   }) => {
     const res = await authService.register(params);
-    if (res.success && res.user) {
-      setUser(res.user);
-      setIsAuthOpen(false);
+    if (res.success) {
+      if (res.user) {
+        setUser(res.user);
+        setIsAuthOpen(false);
+      }
       addToast(res.message || 'Account created successfully!', 'success');
       return { success: true, message: res.message };
     } else {
@@ -243,9 +336,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const updateUserProfile = (updated: Partial<UserProfile>) => {
+  const updateUserProfile = async (updated: Partial<UserProfile>) => {
     if (!user) return;
-    const refreshed = authService.updateProfile(user.id, updated);
+    const refreshed = await authService.updateProfile(user.id, updated);
     if (refreshed) {
       setUser(refreshed);
       addToast('Profile updated successfully', 'success');
@@ -328,12 +421,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
-  // Delivery fee logic: Free above ₹299, else ₹35
   const cartDeliveryFee = cartSubtotal >= 299 || cartSubtotal === 0 ? 0 : 35;
   const cartPackagingFee = cartSubtotal > 0 ? 20 : 0;
-  const cartTaxes = Math.round(cartSubtotal * 0.05); // 5% GST
+  const cartTaxes = Math.round(cartSubtotal * 0.05);
 
-  // Discount calculation
   let cartDiscount = 0;
   if (appliedCoupon && cartSubtotal >= appliedCoupon.minOrder) {
     if (appliedCoupon.discountPercent) {
@@ -369,7 +460,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addToast('Coupon removed', 'info');
   };
 
-  // Favorites
   const toggleFavorite = (dishId: string) => {
     setFavorites((prev) => {
       const isFav = prev.includes(dishId);
@@ -391,14 +481,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       items: [
         {
           cartItemId: 'order-item-1',
-          foodItem: FOOD_ITEMS[0], // Chicken Biryani
+          foodItem: FOOD_ITEMS[0],
           quantity: 1,
           unitPrice: 249,
           customization: { portionSize: 'Regular (Serves 1)' }
         },
         {
           cartItemId: 'order-item-2',
-          foodItem: FOOD_ITEMS[4], // Chocolate Lava Cake
+          foodItem: FOOD_ITEMS[4],
           quantity: 1,
           unitPrice: 149
         }
@@ -430,7 +520,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       items: [
         {
           cartItemId: 'order-item-3',
-          foodItem: FOOD_ITEMS[1], // Margherita Pizza
+          foodItem: FOOD_ITEMS[1],
           quantity: 2,
           unitPrice: 299
         }
@@ -495,6 +585,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     clearCart();
     setActivePage('order-detail');
     addToast(`Order ${newOrderId} placed successfully!`, 'success');
+
+    // Persist to Supabase if configured
+    supabaseService.saveOrder(newOrder);
+
     return newOrder;
   };
 
@@ -503,14 +597,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
     addToast(`Order ${orderId} status updated to "${newStatus}"`, 'info');
+
+    // Persist to Supabase
+    supabaseService.updateOrderStatus(orderId, newStatus);
   };
 
-  // Dish management for admin
+  // Dish management for admin with Supabase synchronization
   const toggleDishAvailability = (dishId: string) => {
+    const current = dishes.find((d) => d.id === dishId);
+    const newAvail = current ? !current.isAvailable : true;
     setDishes((prev) =>
-      prev.map((d) => (d.id === dishId ? { ...d, isAvailable: !d.isAvailable } : d))
+      prev.map((d) => (d.id === dishId ? { ...d, isAvailable: newAvail } : d))
     );
     addToast('Dish availability toggled', 'info');
+
+    // Persist to Supabase
+    supabaseService.toggleFoodItemAvailability(dishId, newAvail);
   };
 
   const updateDishPrice = (dishId: string, newPrice: number) => {
@@ -518,11 +620,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prev.map((d) => (d.id === dishId ? { ...d, price: newPrice } : d))
     );
     addToast('Dish price updated', 'success');
+
+    // Persist to Supabase
+    supabaseService.updateFoodItemPrice(dishId, newPrice);
   };
 
   const addNewDish = (dish: FoodItem) => {
     setDishes((prev) => [dish, ...prev]);
     addToast(`Added new dish "${dish.name}" to menu!`, 'success');
+
+    // Persist to Supabase
+    supabaseService.createFoodItem(dish);
   };
 
   return (
@@ -588,6 +696,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleDishAvailability,
         updateDishPrice,
         addNewDish,
+        isSupabaseLive,
+        checkSupabaseConnection,
         toasts,
         addToast,
         removeToast

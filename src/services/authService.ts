@@ -1,4 +1,5 @@
-import { UserProfile } from '../types';
+import { UserProfile, UserAddress } from '../types';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 export interface StoredUser {
   id: string;
@@ -11,7 +12,7 @@ export interface StoredUser {
   avatar: string;
   isEmailVerified: boolean;
   createdAt: string;
-  addresses: any[];
+  addresses: UserAddress[];
   favoriteDishIds: string[];
 }
 
@@ -41,7 +42,7 @@ function generateSalt(): string {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-// Initial seed accounts with pre-hashed credentials:
+// Initial seed accounts for local offline/preview mode:
 // 1. Customer: rahul.sharma@example.com / Password123!
 // 2. Admin: admin@tastehub.com / Admin123!
 async function createInitialUsers(): Promise<StoredUser[]> {
@@ -110,6 +111,7 @@ async function createInitialUsers(): Promise<StoredUser[]> {
 
 class AuthService {
   private users: StoredUser[] = [];
+  private currentUser: UserProfile | null = null;
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
 
@@ -135,6 +137,19 @@ class AuthService {
     } catch {
       this.users = await createInitialUsers();
     }
+
+    // If Supabase is active, check active Supabase Auth session
+    if (isSupabaseConfigured()) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await this.syncSupabaseProfile(session.user);
+        }
+      } catch (err) {
+        console.warn('Supabase auth session check failed:', err);
+      }
+    }
+
     this.isInitialized = true;
   }
 
@@ -146,8 +161,37 @@ class AuthService {
     }
   }
 
+  private async syncSupabaseProfile(supabaseUser: any): Promise<UserProfile | null> {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      const userProfile: UserProfile = {
+        id: supabaseUser.id,
+        name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email.split('@')[0],
+        email: supabaseUser.email || '',
+        phone: profile?.phone || supabaseUser.user_metadata?.phone || '+91 98000 00000',
+        role: profile?.role || supabaseUser.user_metadata?.role || 'customer',
+        avatar: profile?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(supabaseUser.email)}&backgroundColor=FF7518`,
+        addresses: profile?.addresses || [],
+        favoriteDishIds: profile?.favorite_dish_ids || []
+      };
+
+      this.currentUser = userProfile;
+      return userProfile;
+    } catch (err) {
+      console.error('Error syncing Supabase user profile:', err);
+      return null;
+    }
+  }
+
   // Get current session and user profile
   public getCurrentUser(): UserProfile | null {
+    if (this.currentUser) return this.currentUser;
+
     try {
       const sessionRaw = localStorage.getItem(SESSION_STORAGE_KEY);
       if (!sessionRaw) return null;
@@ -202,7 +246,54 @@ class AuthService {
       return { success: false, message: 'Password must contain at least one letter and one number.' };
     }
 
-    // 2. Duplicate account check
+    // If Supabase is configured, use Supabase Auth
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password: params.password,
+          options: {
+            data: {
+              name: cleanName,
+              phone: params.phone?.trim() || '+91 98000 00000',
+              role: params.role || 'customer'
+            }
+          }
+        });
+
+        if (error) {
+          return {
+            success: false,
+            message: error.message || 'Supabase signup failed. Please try again.'
+          };
+        }
+
+        if (data.user) {
+          // If Supabase has email confirmation enabled
+          if (data.session) {
+            const synced = await this.syncSupabaseProfile(data.user);
+            return {
+              success: true,
+              user: synced || undefined,
+              message: 'Account created successfully in Supabase! Welcome to TasteHub.'
+            };
+          } else {
+            return {
+              success: true,
+              message: 'Account created! Please check your email to confirm your registration before signing in.'
+            };
+          }
+        }
+      } catch (sbErr: any) {
+        console.error('Supabase registration error:', sbErr);
+        return {
+          success: false,
+          message: sbErr.message || 'Unable to register user via Supabase.'
+        };
+      }
+    }
+
+    // Fallback Local Auth Mode
     const existing = this.users.find((u) => u.email.toLowerCase() === cleanEmail);
     if (existing) {
       return {
@@ -211,7 +302,6 @@ class AuthService {
       };
     }
 
-    // 3. Hash password and save user
     const salt = generateSalt();
     const passwordHash = await hashPassword(params.password, salt);
 
@@ -245,12 +335,13 @@ class AuthService {
     this.users.push(newUser);
     this.persistUsers();
 
-    // 4. Create authenticated session
     this.createSession(newUser);
+    const profile = this.toUserProfile(newUser);
+    this.currentUser = profile;
 
     return {
       success: true,
-      user: this.toUserProfile(newUser),
+      user: profile,
       message: 'Account created successfully! Welcome to TasteHub.'
     };
   }
@@ -268,6 +359,41 @@ class AuthService {
       return { success: false, message: 'Please enter both email address and password.' };
     }
 
+    // If Supabase is configured, sign in with Supabase Auth
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password
+        });
+
+        if (error) {
+          return {
+            success: false,
+            message: error.message === 'Invalid login credentials'
+              ? 'Invalid email or password. Please verify your credentials.'
+              : error.message
+          };
+        }
+
+        if (data.user) {
+          const profile = await this.syncSupabaseProfile(data.user);
+          return {
+            success: true,
+            user: profile || undefined,
+            message: `Welcome back, ${profile?.name || 'Customer'}!`
+          };
+        }
+      } catch (sbErr: any) {
+        console.error('Supabase signin error:', sbErr);
+        return {
+          success: false,
+          message: sbErr.message || 'Authentication failed via Supabase.'
+        };
+      }
+    }
+
+    // Fallback Local Auth Mode
     const found = this.users.find((u) => u.email.toLowerCase() === cleanEmail);
     if (!found) {
       return {
@@ -287,41 +413,89 @@ class AuthService {
 
     // Create session
     this.createSession(found);
+    const profile = this.toUserProfile(found);
+    this.currentUser = profile;
 
     return {
       success: true,
-      user: this.toUserProfile(found),
+      user: profile,
       message: `Welcome back, ${found.name}!`
     };
   }
 
   // Logout
   public logout(): void {
+    if (isSupabaseConfigured()) {
+      supabase.auth.signOut().catch((e) => console.warn('Supabase signOut notice:', e));
+    }
+    this.currentUser = null;
     localStorage.removeItem(SESSION_STORAGE_KEY);
   }
 
   // Update profile
-  public updateProfile(
+  public async updateProfile(
     userId: string,
     updates: Partial<UserProfile>
-  ): UserProfile | null {
+  ): Promise<UserProfile | null> {
+    if (isSupabaseConfigured()) {
+      try {
+        const updatePayload: any = {};
+        if (updates.name) updatePayload.name = updates.name.trim();
+        if (updates.phone) updatePayload.phone = updates.phone.trim();
+        if (updates.avatar) updatePayload.avatar = updates.avatar;
+
+        const { error } = await supabase
+          .from('profiles')
+          .update(updatePayload)
+          .eq('id', userId);
+
+        if (error) console.warn('Supabase profile update warning:', error);
+      } catch (err) {
+        console.error('Error updating Supabase profile:', err);
+      }
+    }
+
     const idx = this.users.findIndex((u) => u.id === userId);
-    if (idx === -1) return null;
+    if (idx !== -1) {
+      const current = this.users[idx];
+      if (updates.name) current.name = updates.name.trim();
+      if (updates.phone) current.phone = updates.phone.trim();
+      if (updates.addresses) current.addresses = updates.addresses;
+      if (updates.favoriteDishIds) current.favoriteDishIds = updates.favoriteDishIds;
+      if (updates.avatar) current.avatar = updates.avatar;
+      this.persistUsers();
+      this.currentUser = this.toUserProfile(current);
+      return this.currentUser;
+    }
 
-    const current = this.users[idx];
-    if (updates.name) current.name = updates.name.trim();
-    if (updates.phone) current.phone = updates.phone.trim();
-    if (updates.addresses) current.addresses = updates.addresses;
-    if (updates.favoriteDishIds) current.favoriteDishIds = updates.favoriteDishIds;
+    if (this.currentUser) {
+      this.currentUser = { ...this.currentUser, ...updates };
+      return this.currentUser;
+    }
 
-    this.persistUsers();
-    return this.toUserProfile(current);
+    return null;
   }
 
   // Password reset request
   public async requestPasswordReset(email: string): Promise<{ success: boolean; code?: string; message: string }> {
     await this.ready();
     const cleanEmail = email.trim().toLowerCase();
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
+        if (error) {
+          return { success: false, message: error.message };
+        }
+        return {
+          success: true,
+          message: `Password reset email sent to ${cleanEmail}. Check your inbox for the link.`
+        };
+      } catch (err: any) {
+        return { success: false, message: err.message || 'Failed to send reset email.' };
+      }
+    }
+
     const found = this.users.find((u) => u.email.toLowerCase() === cleanEmail);
     if (!found) {
       return {
@@ -330,7 +504,6 @@ class AuthService {
       };
     }
 
-    // In development/test mode, return a 6-digit verification code
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     sessionStorage.setItem(`reset_code_${cleanEmail}`, resetCode);
 
@@ -349,8 +522,20 @@ class AuthService {
   ): Promise<{ success: boolean; message: string }> {
     await this.ready();
     const cleanEmail = email.trim().toLowerCase();
-    const savedCode = sessionStorage.getItem(`reset_code_${cleanEmail}`);
 
+    if (isSupabaseConfigured()) {
+      try {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) {
+          return { success: false, message: error.message };
+        }
+        return { success: true, message: 'Password has been updated in Supabase successfully!' };
+      } catch (err: any) {
+        return { success: false, message: err.message || 'Failed to update password.' };
+      }
+    }
+
+    const savedCode = sessionStorage.getItem(`reset_code_${cleanEmail}`);
     if (!savedCode || savedCode !== code.trim()) {
       return { success: false, message: 'Invalid or expired reset code. Please request a new code.' };
     }
