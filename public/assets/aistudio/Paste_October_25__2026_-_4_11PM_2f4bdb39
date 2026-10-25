@@ -1,0 +1,1040 @@
+Project: TasteHub — Modern Food Delivery Website
+
+Act as a senior UI/UX designer, full-stack developer, software architect, and e-commerce specialist. Build a complete, modern, premium food delivery website called TasteHub, using the uploaded reference image as the primary design inspiration.
+
+The website must look polished, professional, visually rich, user-friendly, and production-ready. Do not create just a static landing page or a simple UI mockup. Build a complete food ordering platform with functional frontend interactions, backend APIs, database integration, authentication, cart management, checkout, order tracking, and an admin dashboard.
+
+Use the reference image to reproduce its overall visual identity: dark food photography hero, orange accents, white content sections, circular food category icons, featured food cards, promotional banners, customer reviews, app promotion, and dark footer.
+
+1. Technology stack
+
+Use the following technologies where supported by the development environment:
+
+Frontend: React with Next.js and TypeScript.
+Styling: Tailwind CSS with reusable design components.
+UI components: shadcn/ui or an equivalent accessible component library.
+Icons: Lucide React.
+Animations: Framer Motion or lightweight CSS animations.
+Backend: Next.js server actions/API routes or a separate Node.js backend.
+Database: PostgreSQL with Prisma ORM, or Supabase.
+Authentication: Supabase Auth or secure session-based authentication.
+Image storage: Supabase Storage or another suitable image hosting service.
+Payments: Stripe or an appropriate payment gateway for the deployment country, with support for Razorpay where applicable in India.
+Maps and location: Google Maps or a suitable geolocation/maps provider.
+Deployment: Vercel or another compatible hosting platform.
+
+Choose a consistent stack and implement it fully rather than mixing unnecessary technologies. If a service requires credentials, create clearly documented environment variables and provide a functional development fallback without exposing secrets.
+
+2. Design system and visual identity
+
+Create a premium food delivery aesthetic inspired by the supplied reference.
+
+Color palette
+Primary orange: #FF7518
+Accent orange: #FF8A35
+Dark background: #111111
+Charcoal: #1B1B1B
+Main background: #FFFFFF
+Warm off-white: #FAF8F5
+Main text: #191919
+Secondary text: #777777
+Border: #EEEEEE
+Success: #269B57
+Error: #DC3545
+Typography
+
+Use Poppins, Inter, or a similarly modern sans-serif font. Use bold, large headlines and clear body text. Use an attractive handwritten-style font sparingly for decorative food slogans.
+
+Design rules
+Rounded cards with approximately 12–18px corner radii.
+Pill-shaped buttons, category chips, and search fields.
+Subtle shadows and thin borders.
+High-quality food photography with realistic colors.
+Consistent spacing, alignment, and typography.
+Generous white space in the main content sections.
+Dark hero section with a cinematic food image.
+Orange buttons for primary calls to action.
+Small hover effects, smooth transitions, and polished loading states.
+Avoid excessive gradients, excessive glassmorphism, clutter, or oversized animations.
+
+Use reusable design tokens and components throughout the application.
+
+3. Header and navigation
+
+Build a responsive navigation bar.
+
+Desktop header
+TasteHub logo with a chef-hat icon.
+Home.
+Menu.
+About.
+Blog.
+Contact.
+Search icon or search field.
+Delivery location selector with a map-pin icon.
+Shopping cart icon with a live item count.
+Login button.
+Sign Up button in orange.
+
+The header should appear over the dark hero section. Make it sticky when scrolling, with a subtle background transition.
+
+Mobile header
+Compact logo.
+Location indicator.
+Cart icon.
+Hamburger menu.
+Collapsible navigation drawer.
+Touch-friendly controls.
+
+Include active navigation states, dropdown menus where needed, keyboard navigation, and clear focus indicators.
+
+4. Hero section
+
+Recreate the main visual area of the reference image.
+
+Use a dark background with a high-quality image of biryani, grilled chicken, or another appealing meal on the right. Add a dark overlay on the image so text remains readable.
+
+Left-side content:
+
+Small eyebrow text: "DELICIOUS FOOD FOR A BETTER YOU"
+
+Main heading: "Good Food Great Mood"
+
+Highlight "Mood" in orange.
+
+Supporting text: "Fresh ingredients. Delicious flavors. Delivered with love."
+
+Add a prominent search and discovery bar containing:
+
+Search input for dishes and restaurants.
+Location selector.
+Search button labeled "Find Food".
+Search icon.
+Suggested search chips: Biryani, Pizza, Burger, Pasta, Sushi.
+
+Add an optional decorative handwritten slogan on the right: "Good Food, Happier Mood".
+
+Hero functionality
+Search dishes by name.
+Search restaurants by name.
+Filter by selected location.
+Show suggestions as the user types.
+Navigate to the menu/results page when submitted.
+Display a useful empty state when no matches are found.
+
+On mobile, stack the content vertically and maintain strong contrast and readable text.
+
+5. Food category navigation
+
+Create a horizontal category section below the hero.
+
+Categories:
+
+All.
+Indian.
+Pizza.
+Burger.
+Chinese.
+South Indian.
+Desserts.
+Beverages.
+Healthy.
+
+Each category should include a circular image or illustration, a label, and an active state.
+
+Functionality:
+
+Clicking a category filters the displayed dishes.
+The All category resets filters.
+The active category uses orange accents.
+Horizontal scrolling works on mobile.
+Keyboard users can navigate categories.
+Add additional categories from the database when available.
+6. Featured dishes section
+
+Section title: "Featured Dishes"
+
+Subtitle: "Handpicked favorites just for you."
+
+Add a "View All" link and previous/next carousel controls.
+
+Create visually appealing food cards inspired by the reference image.
+
+Each card must include:
+
+Food image.
+Favorite/heart button.
+Food name.
+Short description.
+Star rating.
+Review count.
+Price in the configured currency.
+Optional discount or popular badge.
+Add button.
+Quantity controls when the item is already in the cart.
+
+Sample dishes:
+
+Chicken Biryani — Aromatic & flavorful.
+Margherita Pizza — Classic delight.
+Crispy Chicken Burger — Juicy & crunchy.
+Paneer Butter Masala — Rich & creamy.
+Chocolate Lava Cake — Heavenly dessert.
+
+Use realistic sample prices and mark sample data clearly as demo content until connected to the real menu.
+
+Food card interactions
+Add items to the cart.
+Update item quantity.
+Remove items.
+Toggle favorites.
+Open a detailed product modal or product page.
+Select food size or portion.
+Select add-ons and extras.
+Show vegetarian, vegan, spicy, and allergen indicators where relevant.
+Display loading feedback and success notifications.
+Preserve cart state across page navigation and, for signed-in users, synchronize it with the backend.
+
+Create a responsive grid: five cards per row on sufficiently wide screens, fewer cards on smaller screens, and a single-column layout when appropriate.
+
+7. Full menu and restaurant discovery page
+
+Build a dedicated menu page with complete browsing and filtering features.
+
+Include:
+
+Search bar.
+Category filters.
+Cuisine filters.
+Restaurant cards.
+Dish cards.
+Price range filter.
+Minimum rating filter.
+Vegetarian-only toggle.
+Vegan and dietary filters where supported.
+Spicy food filter.
+Sort by popularity.
+Sort by rating.
+Sort by price, low to high.
+Sort by price, high to low.
+Sort by newest.
+Availability filter.
+Preparation time filter.
+Pagination or infinite scrolling.
+
+Restaurant cards should contain:
+
+Restaurant logo or cover image.
+Name.
+Cuisine types.
+Rating and review count.
+Estimated delivery time.
+Delivery fee.
+Minimum order amount if applicable.
+Open/closed status.
+Offers.
+Favorite control.
+
+Use query parameters for shareable search results and filters. Include clear-filters functionality and informative empty states.
+
+8. Food details page
+
+Build a dedicated product details page for each food item.
+
+Include:
+
+Large food image gallery.
+Dish name and description.
+Price.
+Ratings and reviews.
+Ingredients.
+Portion or size selection.
+Customization options.
+Extra toppings or add-ons.
+Quantity selector.
+Special instructions field.
+Allergen information.
+Estimated preparation time.
+Add-to-cart button.
+Related dishes.
+Recommended combinations.
+
+Validate required options before adding an item to the cart. Calculate the correct price based on size, quantity, and add-ons.
+
+9. Shopping cart
+
+Create a functional cart accessible from the header and a dedicated cart page or side drawer.
+
+Include:
+
+Product thumbnail.
+Product name.
+Selected options.
+Quantity increment/decrement controls.
+Item price.
+Remove button.
+Special instructions.
+Clear cart action.
+Continue shopping link.
+
+Display a complete price summary:
+
+Subtotal.
+Item-level discounts.
+Coupon discount.
+Delivery fee.
+Taxes.
+Packaging charges, if applicable.
+Final total.
+
+Include a coupon input, an apply button, a minimum-order indicator, and a checkout button.
+
+Requirements:
+
+Correctly calculate all amounts on the server before payment.
+Never trust client-submitted prices.
+Prevent invalid quantities and unavailable items.
+Display helpful error messages.
+Handle an empty cart elegantly.
+Require confirmation before destructive actions where appropriate.
+10. Checkout and payment
+
+Build a complete multi-step checkout experience.
+
+Step 1: Delivery information
+Customer name.
+Phone number.
+Email.
+Saved addresses.
+New address form.
+Street, apartment, landmark, city, state, postal code, and country.
+Optional map pin selection.
+Delivery instructions.
+Step 2: Delivery options
+ASAP delivery.
+Scheduled delivery, when supported.
+Available delivery windows.
+Delivery fee and estimated arrival time.
+Step 3: Payment
+Online payment.
+Card payment through the configured payment provider.
+UPI and supported local payment methods where available.
+Cash on delivery only if enabled by the administrator.
+Order total and final confirmation.
+Step 4: Confirmation
+Unique order number.
+Order summary.
+Payment status.
+Estimated delivery time.
+Track order button.
+
+Security requirements:
+
+Use the payment provider's secure checkout or tokenized payment integration.
+Verify payment status on the server.
+Use signed webhooks where supported.
+Prevent duplicate orders and repeated payment processing.
+Never store raw card details.
+Do not mark an order paid based only on a browser redirect.
+
+If payment credentials are missing, provide a clearly labeled sandbox/test mode and setup instructions. Do not simulate a successful real payment.
+
+11. Order tracking
+
+Create a beautiful order tracking page.
+
+Display an order progress timeline:
+
+Order placed.
+Restaurant confirmed.
+Preparing your food.
+Ready for pickup.
+Out for delivery.
+Delivered.
+
+Show:
+
+Order ID.
+Restaurant details.
+Ordered items.
+Payment status.
+Delivery address.
+Estimated delivery time.
+Delivery partner details when available.
+Contact support button.
+Cancel order option when allowed.
+
+Use live updates through a supported real-time service or polling. Show the last update time and a graceful fallback when live tracking is unavailable.
+
+Never show fake live GPS movement. Use actual tracking data only when integrated.
+
+12. Authentication and user accounts
+
+Create login, registration, logout, and password recovery flows.
+
+Include:
+
+Email and password registration.
+Email verification.
+Login.
+Forgot password.
+Password reset.
+Optional Google sign-in.
+Secure session handling.
+Protected routes.
+Role-based authorization.
+
+Build a user account dashboard containing:
+
+Profile details.
+Update profile form.
+Saved addresses.
+Order history.
+Order details.
+Reorder button.
+Favorite dishes.
+Saved restaurants.
+Coupon availability.
+Notification preferences.
+Change password.
+Logout.
+
+Validate inputs on both client and server. Use secure password handling and appropriate session protections.
+
+13. Special offer banner
+
+Create a wide promotional banner inspired by the reference image.
+
+Use a dark background with an appetizing food image on the right.
+
+Content: "Special Offer"
+
+"Flat 30% OFF"
+
+"On Your First Order"
+
+Include:
+
+Coupon code: TASTE30.
+Copy-code button.
+Order Now button.
+Optional expiration date.
+Terms and conditions link.
+
+Make coupon functionality configurable from the database. Validate eligibility, expiry, usage limits, minimum order value, and discount cap on the server.
+
+Do not apply the offer automatically unless the coupon rules explicitly allow it.
+
+14. Why choose TasteHub section
+
+Create a clean white or warm off-white section.
+
+Heading: "Why Choose TasteHub?"
+
+Subtitle: "More than just food, we deliver happiness."
+
+Create four feature blocks with circular illustrated icons.
+
+Feature 1: Fast Delivery
+
+"On time, every time."
+
+Feature 2: Fresh Ingredients
+
+"Quality you can taste."
+
+Feature 3: Expert Chefs
+
+"Crafted with love."
+
+Feature 4: Safe & Secure
+
+"Your safety, our priority."
+
+Use orange, green, and warm pastel backgrounds for the icon circles. Add subtle hover effects and stack the feature blocks on smaller screens.
+
+15. Mobile app promotion
+
+Create a split-layout promotional section.
+
+Left side:
+
+Attractive smartphone mockup displaying a TasteHub ordering interface.
+Food thumbnails and order information.
+Decorative leaves or food-related visuals where appropriate.
+
+Right-side content: "Delicious Food At Your Fingertips"
+
+"Download our app and enjoy exclusive offers, faster ordering and more."
+
+Include:
+
+App Store download badge.
+Google Play download badge.
+Links configurable through environment settings or the admin dashboard.
+
+If native apps are not available, do not claim that the mobile app already exists. The buttons should link to real configured destinations or display a clearly labeled coming-soon state.
+
+16. Customer reviews and testimonials
+
+Create a testimonial section next to or below the app promotion.
+
+Heading: "What Our Customers Say"
+
+Include:
+
+Customer avatar.
+Customer name.
+Star rating.
+Review text.
+Carousel navigation.
+Optional verified-purchase indicator.
+
+Use believable demo testimonials marked as sample content during development.
+
+When connected to the database, display actual reviews. Allow eligible customers to submit reviews after completed orders.
+
+Include rating validation, moderation support, and protection against duplicate reviews.
+
+17. Blog and food content
+
+Create a blog listing page and individual article pages.
+
+Features:
+
+Food recipes.
+Restaurant stories.
+Cooking tips.
+Healthy eating.
+New menu announcements.
+Featured article.
+Category filters.
+Search.
+Author information.
+Publication date.
+Cover images.
+Related posts.
+Social sharing.
+SEO-friendly article URLs.
+
+Provide an admin editor for creating, editing, publishing, and unpublishing articles.
+
+Use real article content when available. Clearly label placeholder articles as demo content.
+
+18. About page
+
+Create a polished About Us page explaining the TasteHub brand.
+
+Include:
+
+Brand story.
+Mission and vision.
+Food quality standards.
+Restaurant partnerships.
+Delivery experience.
+Company statistics only when verified.
+Team section if real team information is provided.
+Call-to-action leading to the menu.
+
+Use authentic photography and the established brand design system.
+
+19. Contact and support
+
+Build a dedicated contact page with:
+
+Contact form.
+Name.
+Email.
+Phone, optional.
+Subject.
+Message.
+Form validation.
+Submission success state.
+Error state.
+Support email configurable through settings.
+Business hours configurable through settings.
+FAQ section.
+Order support link.
+
+Protect forms against spam and abuse. Validate and sanitize submitted data on the server.
+
+Do not invent a real support email, phone number, office address, or social media account. Use clearly identified configuration placeholders until actual details are supplied.
+
+20. Footer
+
+Recreate the dark footer in the reference image.
+
+Include:
+
+TasteHub logo.
+Short brand description.
+Home.
+Menu.
+About.
+Blog.
+Contact.
+FAQ.
+Privacy Policy.
+Terms and Conditions.
+Refund and Cancellation Policy.
+Delivery Policy.
+Social media icons.
+Copyright notice.
+
+Make all links functional. Use configured social media URLs. Add a responsive layout with a compact mobile version.
+
+21. Admin dashboard
+
+Create a protected, full-featured administration dashboard at a dedicated route such as /admin.
+
+Only authorized administrators may access it. Hiding admin links in the UI is not sufficient; enforce authorization on the server.
+
+Dashboard overview
+
+Display database-backed metrics:
+
+Total orders.
+Revenue from verified payments.
+Pending orders.
+Completed orders.
+Active customers.
+Active restaurants.
+Popular dishes.
+Recent orders.
+Sales charts.
+Product management
+Add, edit, and delete dishes.
+Upload food images.
+Update prices.
+Manage sizes and add-ons.
+Assign categories.
+Set vegetarian and dietary labels.
+Configure availability.
+Manage featured items.
+Category management
+Create categories.
+Edit category names and images.
+Reorder categories.
+Enable or disable categories.
+Restaurant management
+Add and edit restaurants.
+Configure cuisine types.
+Set operating hours.
+Manage restaurant addresses.
+Configure delivery fees and estimated preparation times.
+Manage restaurant availability.
+Order management
+View orders.
+Search and filter orders.
+Update order status.
+Verify payment status.
+Manage cancellations and refunds through the payment provider.
+View order details.
+Export reports where appropriate.
+Customer management
+View customer records.
+Review order history.
+Manage support requests.
+Suspend accounts when justified and permitted.
+Promotions management
+Create coupon codes.
+Configure percentage or fixed discounts.
+Set expiry dates.
+Set usage limits.
+Define eligible products and minimum order amounts.
+Enable or disable promotions.
+Content management
+Manage homepage banners.
+Edit testimonials.
+Publish blog articles.
+Update About and FAQ content.
+Configure footer links.
+Settings
+Brand name and logo.
+Currency.
+Tax rates.
+Delivery fees.
+Service areas.
+Business hours.
+Contact details.
+Payment settings.
+Email notifications.
+Social media links.
+
+Include pagination, form validation, confirmation dialogs, useful success/error messages, and responsive admin layouts.
+
+22. Delivery partner module
+
+Design the architecture to support a delivery partner role if the business needs it.
+
+Features:
+
+Assigned orders.
+Order pickup details.
+Delivery address.
+Status updates.
+Customer contact options where legally permitted.
+Delivery history.
+Earnings information if applicable.
+
+Restrict delivery partners to their own assigned orders. Use actual assignment and location data, not hardcoded demonstrations presented as live operations.
+
+23. Notifications and email
+
+Implement a notification system for:
+
+Account verification.
+Password reset.
+Order confirmation.
+Payment confirmation.
+Order status changes.
+Cancellation and refund updates.
+Promotional emails when users have consented.
+
+Use a configured transactional email provider. Add in-app notifications where appropriate.
+
+Include loading, success, and failure states. Log delivery failures safely and never expose credentials or sensitive payment information.
+
+24. Database schema
+
+Design a relational database with appropriate keys, relationships, indexes, timestamps, and constraints.
+
+Create models or tables for:
+
+Users.
+Roles and permissions.
+User profiles.
+Addresses.
+Restaurants.
+Restaurant operating hours.
+Food categories.
+Food items.
+Food images.
+Product variants.
+Add-ons.
+Favorites.
+Shopping carts.
+Cart items.
+Orders.
+Order items.
+Order item customizations.
+Payments.
+Refund records.
+Delivery assignments.
+Order status history.
+Coupons.
+Coupon usage.
+Reviews.
+Blog posts.
+Contact messages.
+Notifications.
+Homepage banners.
+Application settings.
+Audit logs.
+
+Important rules:
+
+Store order item prices and names as historical snapshots.
+Use appropriate decimal types for money.
+Store timestamps consistently.
+Use database transactions for critical order operations.
+Enforce unique identifiers and appropriate foreign-key constraints.
+Do not expose private user information through public endpoints.
+Never store raw card data or payment secrets.
+Use migrations and provide a reproducible database setup.
+25. Backend APIs and business logic
+
+Implement the necessary endpoints or server actions for:
+
+Authentication.
+User profiles.
+Address management.
+Food categories.
+Food listings.
+Search and filtering.
+Restaurant listings.
+Food details.
+Favorites.
+Cart operations.
+Coupon validation.
+Checkout.
+Payment intent/session creation.
+Payment webhook verification.
+Order creation.
+Order history.
+Order status tracking.
+Reviews.
+Contact messages.
+Notifications.
+Admin CRUD operations.
+Dashboard reports.
+
+Use schema-based validation, consistent error responses, authorization checks, pagination, rate limiting where appropriate, and secure server-side business logic.
+
+Calculate prices, discounts, taxes, delivery charges, and payment totals on the server. Use idempotency for payment and order creation where supported.
+
+26. Responsive design
+
+The website must work properly on:
+
+Large desktop screens.
+Standard laptops.
+Tablets.
+Mobile phones.
+Desktop
+Full navigation.
+Wide hero layout.
+Multi-column dish grid.
+Wide offer banner.
+Split promotional sections.
+Tablet
+Compact navigation.
+Reduced grid columns.
+Adapted image ratios.
+Flexible section spacing.
+Mobile
+Compact header.
+Vertically stacked hero.
+Full-width search controls.
+Horizontally scrollable categories.
+Two-column dish grid when space permits, switching to one column when necessary.
+Full-width checkout controls.
+Touch-friendly buttons.
+No horizontal overflow.
+Responsive cart drawer or cart page.
+Mobile-friendly admin dashboard.
+
+Use responsive CSS and test common viewport widths. Do not merely shrink the desktop design.
+
+27. Animations and interactions
+
+Use subtle, performance-conscious animations:
+
+Hero text entrance.
+Gentle image reveal.
+Card hover elevation.
+Button hover and pressed states.
+Category selection transitions.
+Carousel movement.
+Cart drawer transitions.
+Toast notifications.
+Skeleton loading.
+Scroll-triggered section reveals where appropriate.
+
+Respect reduced-motion preferences. Avoid animations that interfere with reading, accessibility, or ordering.
+
+28. Accessibility
+
+Follow WCAG 2.2 AA principles where practical.
+
+Include:
+
+Semantic HTML.
+Proper heading hierarchy.
+Accessible form labels.
+Keyboard-accessible navigation.
+Visible focus states.
+Adequate color contrast.
+Accessible dialogs and drawers.
+Alternative text for meaningful images.
+Screen-reader-friendly cart updates.
+Error messages linked to their fields.
+Touch targets of suitable size.
+Reduced-motion support.
+
+Never use color alone to communicate errors, availability, or order status.
+
+29. SEO and performance
+
+Implement:
+
+Page-specific titles and descriptions.
+Canonical URLs.
+Open Graph metadata.
+Social sharing metadata.
+XML sitemap.
+robots.txt.
+Structured data where appropriate and accurate.
+Optimized image sizes.
+Lazy loading below-the-fold images.
+Responsive image delivery.
+Route-level loading states.
+Caching for appropriate public content.
+Pagination for large datasets.
+Error boundaries.
+Friendly 404 and error pages.
+
+Use semantic URLs such as /menu, /menu/chicken-biryani, /restaurants, /about, /blog, /contact, /cart, /checkout, /orders, and /account.
+
+Do not invent ratings, reviews, business details, or structured data.
+
+30. Security and privacy
+
+Implement:
+
+Server-side input validation.
+Secure authentication and sessions.
+Role-based access control.
+Protection against common injection and cross-site scripting attacks.
+CSRF protection where applicable.
+Rate limiting for sensitive endpoints.
+Secure cookie settings.
+Safe file-upload validation.
+Restricted image and document upload types.
+Payment webhook signature verification.
+Secrets stored only in environment variables.
+Least-privilege database access.
+Data minimization.
+Appropriate account deletion and privacy workflows.
+Audit logging for important administrative actions.
+
+Never expose API secrets in frontend code. Never trust user-submitted prices, roles, discounts, or payment statuses.
+
+31. Error handling and application states
+
+Every important feature must have:
+
+Loading state.
+Empty state.
+Success state.
+Validation state.
+Error state.
+Retry or recovery action when appropriate.
+
+Handle network failures, expired sessions, unavailable food items, failed payments, out-of-stock products, expired coupons, and checkout interruptions gracefully.
+
+Provide user-friendly messages rather than exposing raw stack traces.
+
+32. Seed data and initial setup
+
+Provide a development seed script with:
+
+Food categories.
+At least 12 sample dishes.
+Several sample restaurants.
+Sample prices.
+Product images.
+Sample ratings clearly marked as demo content.
+A few promotional coupons.
+Sample blog posts.
+Sample testimonials clearly identified as demo content.
+
+Use real image URLs from reliable, licensed image sources or provide a straightforward image replacement workflow. Avoid broken links, repeated generic placeholders, or unrelated food images.
+
+Do not insert hardcoded sample orders or revenue into production analytics.
+
+Create a setup guide explaining database migrations, seed commands, environment variables, payment setup, email setup, image storage, and deployment.
+
+Never hardcode default administrator credentials into production. Provide a secure administrator creation process.
+
+33. Testing
+
+Create automated tests where supported.
+
+Include:
+
+Unit tests for price calculations and coupons.
+Component tests for cart interactions.
+API tests for authorization and validation.
+Integration tests for checkout and order creation.
+Payment webhook tests using provider test events.
+End-to-end tests for registration, browsing, cart, checkout, and order history.
+Responsive layout checks.
+Accessibility checks for important flows.
+
+Verify that users cannot access another user's orders, ordinary users cannot invoke admin operations, and payment failures never create falsely paid orders.
+
+34. Required pages and routes
+
+Build the following pages:
+
+Public:
+
+/
+/menu
+/menu/[slug]
+/restaurants
+/restaurants/[slug]
+/offers
+/about
+/blog
+/blog/[slug]
+/contact
+/faq
+/privacy
+/terms
+/refund-policy
+/delivery-policy
+
+Customer:
+
+/login
+/signup
+/forgot-password
+/reset-password
+/cart
+/checkout
+/orders
+/orders/[id]
+/account
+/account/addresses
+/account/favorites
+/account/settings
+
+Administration:
+
+/admin
+/admin/orders
+/admin/menu
+/admin/categories
+/admin/restaurants
+/admin/customers
+/admin/coupons
+/admin/reviews
+/admin/blog
+/admin/banners
+/admin/settings
+
+Add other routes as needed to support the application properly.
+
+35. Implementation workflow
+
+Work through the project in this order:
+
+Inspect the reference image and establish the design system.
+Create the project structure and reusable components.
+Build the homepage to closely match the reference.
+Build the menu, restaurant, and product details pages.
+Implement the database schema and seed data.
+Implement authentication and role-based access.
+Implement cart, coupon, checkout, and order management.
+Integrate the payment provider in test mode.
+Build order tracking and customer account pages.
+Build the admin dashboard and management screens.
+Implement email notifications and other configured integrations.
+Add SEO, accessibility, performance optimizations, and security protections.
+Run tests, fix bugs, and verify responsive layouts.
+Provide complete setup and deployment instructions.
+
+Do not stop after generating the homepage. Continue implementing the complete application. If the environment has limitations, prioritize a fully working core ordering flow and clearly document features that require external credentials.
+
+36. Final quality requirements
+
+The finished result must:
+
+Closely follow the uploaded TasteHub reference image.
+Look like a professionally designed commercial food delivery platform.
+Use consistent orange, black, white, and warm neutral styling.
+Include high-quality food photography.
+Have reusable and maintainable components.
+Work on mobile, tablet, and desktop.
+Support actual database-backed product and order management.
+Include a secure, functional cart and checkout.
+Handle payments safely through a real configured provider.
+Include protected customer and admin dashboards.
+Avoid dead buttons and fake functionality.
+Avoid broken links, broken images, and console errors.
+Include useful empty, loading, success, and error states.
+Provide clear instructions for setup, testing, and deployment.
+
+Start by building the complete homepage with the same visual hierarchy as the reference image, then continue building and connecting the remaining pages and backend functionality. Use sensible defaults without repeatedly asking for minor design decisions. Deliver a coherent, working application rather than disconnected mockup screens.

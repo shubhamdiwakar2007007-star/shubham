@@ -1,0 +1,8 @@
+{
+  "name": "TasteHub — Modern Food Delivery",
+  "description": "Premium food ordering platform featuring handpicked dishes, live order tracking, category discovery, cart management, and admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
